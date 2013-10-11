@@ -391,7 +391,7 @@ $files=array_merge(array($prev_folder),array($current_folder),$sorted);
 		<span class="icon-bar"></span>
 		<span class="icon-bar"></span>
 	    </button>
-	    <div class="brand"><?php echo lang_Toolbar; ?> -></div>
+	    <div class="brand"><?php echo lang_Toolbar; ?></div>
 	    <div class="nav-collapse collapse">
 		<div class="filters">
 		    <div class="row-fluid">

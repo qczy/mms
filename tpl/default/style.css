@@ -448,3 +448,12 @@ background: #FFCCCC
 }
 
 
+
+.galery ul{ list-style: none;}
+
+.galery li{position:relative; float: left; }
+
+.galery li a{display:block; border:1px solid silver;padding:5px;margin:5px;}
+.galery li a:hover{background:#FF6633}
+
+.galery li img { display: block;  }

@@ -24,42 +24,25 @@ mb_internal_encoding('UTF-8');
 //$current_path = '../source/'; // relative path from filemanager folder to upload folder (with final /)
 //thumbs folder can't put inside upload folder
 //$thumbs_base_path = '../thumbs/'; // relative path from filemanager folder to thumbs folder (with final /)
+//
 
 
+//echo $_SERVER["PHP_SELF"];
 
+//echo dirname("http://" . $_SERVER["SERVER_NAME"] . $_SERVER["PHP_SELF"]);
+//echo dirname( $_SERVER["PHP_SELF"]);
 
-//$host = 'http://'.$_SERVER['SERVER_NAME'];
+//http://localhost/mms/res/tinymce/plugins/filemanager
+//http://localhost/mms/res/tinymce/plugins/filemanager/dialog.php
 
-//$base_url=rtrim($_SESSION["absurl"],'/') ;  // base url of site (without final /). If you prefer relative urls leave empty
-//$upload_dir = str_replace($host,"",$base_url . "/".$_SESSION["upl_dir"] ); // path from base_url to base of upload folder (with start and final /)
-//$root = rtrim($_SERVER['DOCUMENT_ROOT'],'/'); // don't touch this parameter
+//print_r($_SERVER);
 
-//$host . "<br/>";
-//$base_url . "<br/>";
-//$upload_dir . "<br/>";
-
-
-//$current_path = '../../../../'.$_SESSION["upl_dir"]; // relative path from filemanager folder to upload folder (with final /)
-//thumbs folder can't put inside upload folder
-//$thumbs_base_path = $current_path . "../thumbs/"; // relative path from filemanager folder to thumbs folder (with final /)
-
-//$current_path . "<br/>";
-//$thumbs_base_path . "<br/>";
-
-
-//$base_url="http://localhost/mms";  // base url (only domain) of site (without final /). If you prefer relative urls leave empty
-//$upload_dir = '/data/images/'; // path from base_url to base of upload folder (with start and final /)
-//$current_path = '../../../../data/images/'; // relative path from filemanager folder to upload folder (with final /)
-
-//$thumbs_base_path = '../../../../data/thumbs/'; // relative path from filemanager folder to thumbs folder (with final /)
-
-
-$base_url=rtrim($_SESSION["absurl"],'/');  // base url (only domain) of site (without final /). If you prefer relative urls leave empty
-$upload_dir = '/'.$_SESSION["upl_dir"]; // path from base_url to base of upload folder (with start and final /)
-$current_path = '../../../..'.$upload_dir; // relative path from filemanager folder to upload folder (with final /)
-//$thumbs_base_path = $current_path . '../thumbs/'; // relative path from filemanager folder to thumbs folder (with final /)
-$thumbs_base_path =  '../thumbs/'; // relative path from filemanager folder to thumbs folder (with final /)
-
+$base_url='';  // base url (only domain) of site (without final /). If you prefer relative urls leave empty
+//$upload_dir = dirname( $_SERVER["PHP_SELF"]) . '/data/images/'; // path from base_url to base of upload folder (with start and final /)
+//$current_path = 'data/images/'; // relative path from filemanager folder to upload folder (with final /)
+$upload_dir = dirname($_SERVER["PHP_SELF"]) . '/' . trim($_SESSION["upl_dir"],"/") . '/'; // path from base_url to base of upload folder (with start and final /)
+$current_path = trim($_SESSION["upl_dir"],"/") ."/"; // relative path from filemanager folder to upload folder (with final /)
+$thumbs_base_path = 'data/thumbs/'; // relative path from filemanager folder to thumbs folder (with final /)
 
 //------------------------------------------------------------------------------
 // YOU CAN COPY AND CHANGE THESE VARIABLES IN FOLDERS config.php FILES

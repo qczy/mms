@@ -5,7 +5,9 @@
 
 					MMS - CMS - Q3 Content Management System
 					
-
+TODO:
+-Tablica
+-galerie
 
 */
 ////////////////////////////////////////////////////////////////////////
@@ -288,7 +290,7 @@ $_GET["p"] = ($_GET["p"])?$_GET["p"]:"index";
 						
 							//zmiana wybranych wartości
 							if ($_PVK=='lnk') $_POST[$_PVK] = createurl($_POST[$_PVK]);
-							if ($_PVK=='content') $_POST[$_PVK] = $_POST['pgcontent'];
+							if ($_PVK=='content') $_POST[$_PVK] = $_POST['pgcontent'] ;//|| $_POST['glcontent'];
 							
 							$PV_TMP[$_PVK] = stripslashes($_POST[$_PVK]);
 						}
@@ -364,7 +366,7 @@ foreach($pages as $pkey=>$page){
 	if(($_SESSION['admin']!='ok' || isset($_GET['prev'])) && $page["status"]==0 )continue;
 	
 	$prev=(isset($_GET['prev']))?"?prev":"";
-	
+
 	$icon =($page["status"]==0)?"<img style='position:relative;top:3px;height:14px;' src='".$GS['res_dir']."invisible_light_icon.png' alt='niewidoczna'/>":(($page["status"]==2)?"<img style='position:relative;top:3px;height:14px;border:0px;' src='".$GS['res_dir']."lock.png' alt='niewidoczna' />":"");
 	
 	$class = ($page["lnk"]==$_GET["p"])?"active":"";
@@ -373,6 +375,9 @@ foreach($pages as $pkey=>$page){
 	$TPL_V["ps_menu"] .= "<li id='".$GS['mnu_pfx'].$pkey."' class='".$liclass."'><a class='".$class."' title='".$page["title"]."' href='".$page["lnk"].".html".$prev."'><span> ".$icon." ".$page["mnu"]."</span></a></li>";
 }
 
+
+						
+						
 //ZMIENNE SZABLONU --> -------------------------------------------------------------
 
 	//Page settings - ustawienia globalne strony - szablon, tytuł
@@ -384,7 +389,6 @@ foreach($pages as $pkey=>$page){
 	foreach ($PVK as $_PVK=>$_PVV) {
 		$TPL_V["pv_" . $_PVK] = $disp_pg[$_PVK];
 	}
-
 
 	//Page user settings - dodatkowe ustawienia użytkownika - nagłówek strony, stopka strony
 	foreach ($PUSK as $_PUSK) {
@@ -415,19 +419,28 @@ foreach($pages as $pkey=>$page){
 		$tplfile=str_replace('<body>','<body><form method="POST" enctype="multipart/form-data" action="?adm" id="admform">',$tplfile);
 		$tplfile=str_replace('</body>','</form></body>',$tplfile);
 		
-		
-		
 		//PASEK ADMINISTRATORA vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 			$admhtml = "";
 
 			if($_SESSION['admin']!='ok'){
 				
-				$admhtml .= "<input type='hidden' name='action' value='login'/><input type='password' name='pswd'><input type='submit' value='Login'>";
+				$tplfile = inc("adm_login");
+
+				//$admhtml .= "<input type='hidden' name='action' value='login'/><input type='password' name='pswd' style='width:155px;'><input type='submit' value='Login'>";
 				
 				//Podmiana zmiennych strony
+				/*
+				$tplfile=str_replace('<body>',"<body><div id='container' style='width:250px;'>
+				<div id='top'></div>
+				<div id='content'>
+					{PV_CONTENT}{ADMIN_BAR}
+				</div>
+				<div id='footer'>MMS - <a href='mailto:qczy@o2.pl'>Q3</a> 2013</div></div><div style='display:none;'>",$tplfile);
+				$tplfile=str_replace('</body>',"</div></body>",$tplfile);
+
 				$tplfile=str_replace('{PS_MENU}',"",$tplfile);
 				$tplfile=str_replace('{PV_CONTENT}',"",$tplfile);
-				$tplfile=str_replace('{PV_TITLE}',"Musisz być zalogowany aby wyświetlić tę stronę",$tplfile);
+				*/
 
 			}else{
 			
@@ -460,6 +473,13 @@ foreach($pages as $pkey=>$page){
 
 		//podmiana strony na stronę z ustawieniami
 		if($_SESSION['admin']=='ok'){
+
+			//według podanej strony w adresie,
+			switch($_GET["p"]){
+				case 'dashboard':{
+					$_GET["a"]= 'dashboard';	
+				}break;
+			}
 
 			switch($_GET["a"]){
 			
@@ -530,14 +550,17 @@ foreach($pages as $pkey=>$page){
 				
 				}break;
 				
-				case "tablica":{
+				case "dashboard":{
 
 					$disp_pg = array('lnk'=>generateRandomString(10), 'typ'=>'html', 'mnu'=>'nowa strona', 'tpl'=>'template', 'title'=>'Tytuł nowej strony. Kliknij tutaj i zmień', 'content'=>'Kliknij tutaj i wprowadź swoją zawartość', 'status'=>'0', );
 					$disp_pg["id"]=count($pages);
 					
 					$TPL_V["pv_title"] = "Tablica";
 					
-					$TPL_V["pv_content"] = "<ul>
+					$TPL_V["pv_content"] = "
+					Dzisiejsza data: ".date("d.m.Y", time()).". Ostatnie logowanie: 00:00:0000
+					<hr>
+					<ul>
 					<li><a href='#'><H3 style='margin-bottom:0px;'>Dodaj nową stronę</h3></a><span>Dodaj nową stronę do menu</span></li>
 					<li><a href='#'><H3 style='margin-bottom:0px;'>Zmień ustawienia strony</h3></a><span>Zmień ustawienia dla całej witryny jak tytuł czy słowa kluczowe</span></li>
 					<li><a href='#'><H3 style='margin-bottom:0px;'>Wyświetl stronę</h3></a><span>Podejrzyj w nowym oknie jak wygląda witryna</span></li>
@@ -579,7 +602,26 @@ foreach($pages as $pkey=>$page){
 						$ptype_sel .=  "<option value='".$pkey."' ".$ptsel.">".$ptype."</option>";
 					}
 					$ptype_sel .=  "</select>";
-
+					
+					if($disp_pg["typ"]=="gal"){
+						
+						$_SESSION["upl_dir"] = "data/galery/";
+						
+						$galeries = glob("res/tinymce/plugins/filemanager/".$_SESSION["upl_dir"]."*",GLOB_ONLYDIR);
+						
+						$gal_sel =  "<select name='pgcontent' id='pgcontent' ><option value='' >Folder główny</option>";
+						foreach($galeries as $gkey=>$gal_dir){
+						
+							$glsel =(basename ($gal_dir) == $disp_pg["content"])?"selected='selected'":"";
+							$gal_sel .=  "<option value='".basename ($gal_dir)."' ".$glsel.">".basename ($gal_dir)."</option>";
+						}
+						$gal_sel .=  "</select>";
+						
+						
+						
+					}
+					
+					
 					$tabs =  "
 							<div id='tabContainer'>
 								<ul class='tabs'>
@@ -627,13 +669,18 @@ foreach($pages as $pkey=>$page){
 								
 									<div id='tab2' class='tabContents'>
 										
-										<div id='tab_html'>
+										<div id='tab_html' class='subtab' style='display:".(($disp_pg["typ"]=="html")?"":"none")."'>
 											<textarea class='editable' name='pgcontent' id='pgcontent'>".$disp_pg["content"]."</textarea>
 										</div>
 										
-										<div id='tab_gal' style='display:none'>
-										<a href='res/tinymce/plugins/filemanager/dialog.php?type=1&field_id=fieldID' class='btn iframe-btn' type='button'>Open Filemanager</a>
+										<div id='tab_gal' class='subtab' style='display:".(($disp_pg["typ"]=="gal")?"":"none")."'>
+											
+											<!--<div class='field'><label style=''>Folder:<br/>".$gal_sel."</label><span>Folder z którego będą wyświetlane obrazy</span></div>-->
 										
+											<div class='field'><label style=''>Manager obrazów:</label><span>Zarządzaj obrazami znajdującymi się w galerii</span></div>	
+										
+											<iframe height='550' style='width:100%' frameborder='0' src='res/tinymce/plugins/filemanager/dialog.php?type=1&lang=pl&fldr='>
+											</iframe>
 										</div>
 										
 										<div style='padding:5px;'>
@@ -766,6 +813,12 @@ foreach($pages as $pkey=>$page){
 		$TPL_V["pv_content"] = preg_replace("/\p{L}*?".preg_quote($_GET["h"])."\p{L}*/ui", "<span class='highlight'>$0</span>", $TPL_V["pv_content"]);
 	}
 	
+	
+	
+	
+	
+	
+	
 	//Wstawienie pliku formularza kontaktu do zmiennych strony
 	$TPL_V["pv_contact"] = inc("contact");
 
@@ -783,12 +836,80 @@ foreach($pages as $pkey=>$page){
 	}
 	$TPL_V["pv_content"] = stripslashes($TPL_V["pv_content"]);
 	
+	
+	if(($_SESSION['admin']!='ok' || isset($_GET["prev"])) && $disp_pg["typ"]=="gal"){
+		
+		$fancybox = inc("fancybox");
+		
+		$tplfile=str_replace('</head>', $fancybox . "</head>",$tplfile);
+		
+		$images = glob("res/tinymce/plugins/filemanager/data/galery/*.{gif,jpg}",GLOB_BRACE);
+		$TPL_V["pv_content"] ="<div class='galery'><ul>";
+		foreach( $images as $image ){ 
+			$TPL_V["pv_content"] .="<li>
+			<a class='fancybox' href='res/tinymce/plugins/filemanager/data/galery/".basename($image)."' title='' rel='group1'>
+			<img src='res/tinymce/plugins/filemanager/data/thumbs/".basename($image)."' alt='' /></a></li>"; 
+		} 
+		$TPL_V["pv_content"] .="</ul></div>";
+	
+	}
+
+	
+	
+	
+	
+	
+/*
+					
+					if($disp_pg["typ"]=="gal"){
+					
+						$images = explode ("|",$disp_pg["content"]);
+						
+						foreach($images as $image){
+							$disp_pg["content"] .= "<img class='thumb' src='".$image."' alt='".$image."'/>";
+						
+							$disp_pg["content"] .= "<a href='../articles/".$image['obraz'].".".$image['ext']."' title='". $image["title"] . "' rel='group1'>
+								<img src='../articles/thumbs/".$image['obraz']."_thumb.".$image['ext']."' alt='' class='img'>
+							</a>
+
+							<span class='action' style=' '>
+								<a href='?a=edit&amp;id=".$item['id']."&sa=delete&sid=".$image["id"]."' class='fr' title='Usuń'><img src='./images/cancel_16.png' alt='delete' class='help'></a>
+							</span>";
+						
+						
+						
+						echo "";
+						
+						
+						
+						}
+						
+						$disp_pg["content"] .= "<span  class='thumb fl-space' style='width:100px;height:122px;$style'>
+												<a href='' id='add_file' title='Dodaj nowy obraz'><img src='images/add.jpg' alt=''  style='width:100px;height:100px;'></a>
+											</span>";
+						
+						
+					
+					}
+					
+					
+					*/
+					
+	
+	
+	
+	
 	//Ostateczna podmiana zmiennych szablonu
 	$tplfile=parsetplvars($tplfile, array_change_key_case($TPL_V, CASE_UPPER)); 
 	
 	//Wyświetlenie strony
+	
 	echo eval('?>'.$tplfile); 
-
+	
+	//drobne statystyki
+	//if($_SESSION['admin']!='ok')
+	stats();
+	
 	//Dalej nie ma sensu przetwarzać strony
 	ob_end_flush();
 	die;	
@@ -987,6 +1108,78 @@ function gpl($link,$array){//Pobiera stronę po linku
 	'content'=>'Wybrana strona nie istnieje. Przepraszamy', 'status'=>'0', );
 }
 
+function stats(){
+	global $GS;
+
+	$stats = array();
+
+	$stats["DATE"] = date("y-m-d H:i:s", time());
+	$stats["HTTP_HOST"] = $_SERVER['HTTP_HOST'];
+	$stats["HTTP_USER_AGENT"] = $_SERVER['HTTP_USER_AGENT'];
+	$stats["HTTP_REFERER"] = $_SERVER['HTTP_REFERER'];
+	//$stats["SERVER_NAME"] = $_SERVER['SERVER_NAME'];
+	//$stats["SERVER_ADDR"] = $_SERVER['SERVER_ADDR'];
+	//$stats["SERVER_PORT"] = $_SERVER['SERVER_PORT'];
+	$stats["REMOTE_ADDR"] = $_SERVER['REMOTE_ADDR'];
+	$stats["REMOTE_HOST"] = $_SERVER['REMOTE_ADDR'];
+	$stats["REDIRECT_URL"] = $_SERVER['REDIRECT_URL'];
+	//$stats["QUERY_STRING"] = $_SERVER['QUERY_STRING'];
+	$stats["REQUEST_URI"] = $_SERVER['REQUEST_URI'];
+	//$stats["PHP_SELF"] = $_SERVER['PHP_SELF'];
+	$stats["CURRENT_PAGE"] = (string) substr( $_SERVER["REQUEST_URI"], strrpos( $_SERVER["REQUEST_URI"], '/' )+1 );
+
+	$browser = $_SERVER['HTTP_USER_AGENT'];
+	if (strstr(strtoupper($browser),"MSIE") || strstr(strtoupper($browser),"FIREFOX") || strstr(strtoupper($browser),"SAFARI") || strstr(strtoupper($browser),"OPERA") || strstr(strtoupper($browser),"CHROME") || strstr(strtoupper($browser),"NETSCAPE") || strstr(strtoupper($browser),"CAMINO") || strstr(strtoupper($browser),"SEAMONKEY") || strstr(strtoupper($browser),"ICAB") || strstr(strtoupper($browser),"K-MELEON") || strstr(strtoupper($browser),"AMAYA") || strstr(strtoupper($browser),"FLOCK") || strstr(strtoupper($browser),"GALEON") || strstr(strtoupper($browser),"MAXTHON") || strstr(strtoupper($browser),"DILLO") || strstr(strtoupper($browser),"SLIM") || strstr(strtoupper($browser),"KIDROCKET") || strstr(strtoupper($browser),"PHASEOUT") || strstr(strtoupper($browser),"OMNIWEB") || strstr(strtoupper($browser),"ICEWEASEL")) {
+		$ROBOT = false;
+	} else {
+		$ROBOT = true;
+	}
+	
+	$stats["ROBOT"] = $ROBOT;
+
+	
+	
+	
+	
+	
+	
+	$data = "{";
+	foreach($stats as $stat){
+		$data .= $stat."|";
+	}
+	$data .= "}\r\n";
+	
+	
+	//$stats["browser_info"] = php_browser_info();
+	
+	/*
+	
+	'".$stats["ip"]."', 
+	'".$stats["ip_host"]."',  
+	'".php_uname('n')."',  
+	'".$stats["user_agent"]."', 
+	'".$stats["browser_info"]["platform"]."', 
+	'".$stats["browser_info"]["browser"]."',   	
+	'".$stats["date"]."',  
+	'".$stats["page"]."',  
+	'".$stats["browser_info"]["device_name"]."',  
+	'".$stats["browser_info"]["renderingengine_name"]."'
+	*/
+	
+	
+	
+	
+	
+	
+	
+	
+	$fp=fopen($locpath.$GS['data_dir'].'stats.log','a');
+	fwrite($fp,$data);
+	fclose($fp);
+
+}
+
+
 function generateRandomString($length = 10) {
     //return substr(str_shuffle("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, $length);
     return substr(str_shuffle("abcdefghijklmnopqrstuvwxyz"), 0, $length);
@@ -998,9 +1191,71 @@ function inc($file){
 	global $GS;
 	global $msg;
 	switch($file){
+		
+		case "fancybox":{
+			
+			return  "
+			<!-- Add jQuery library -->
+			<script type='text/javascript' src='".$GS['res_dir']."fancybox2/lib/jquery-1.10.1.min.js'></script>
 
+			<!-- Add mousewheel plugin (this is optional) -->
+			<script type='text/javascript' src='".$GS['res_dir']."fancybox2/lib/jquery.mousewheel-3.0.6.pack.js'></script>
+
+			<!-- Add fancyBox main JS and CSS files -->
+			<script type='text/javascript' src='".$GS['res_dir']."fancybox2/source/jquery.fancybox.js?v=2.1.5'></script>
+			<link rel='stylesheet' type='text/css' href='".$GS['res_dir']."fancybox2/source/jquery.fancybox.css?v=2.1.5' media='screen' />
+
+			<!-- Add Button helper (this is optional) -->
+			<link rel='stylesheet' type='text/css' href='".$GS['res_dir']."fancybox2/source/helpers/jquery.fancybox-buttons.css?v=1.0.5' />
+			<script type='text/javascript' src".$GS['res_dir']."fancybox2source/helpers/jquery.fancybox-buttons.js?v=1.0.5'></script>
+			<script type='text/javascript'>
+				$(document).ready(function() {
+					$('.fancybox').fancybox();
+				});
+			</script>";
+		};
 		
 		
+		case "adm_login":{
+			
+			return "<!DOCTYPE html>
+					<head>
+						<meta http-equiv='Content-Type' content='text/html; charset=UTF-8' />
+						<meta name='keywords' content='{_PSKWORDS}'>
+						<meta name='description' content='{PS_DESCRIPTION}'>
+						<style>
+							body{font: 10pt helvetica, arial, sans-serif; }
+							input[type=text],input[type=password],select,textarea {padding:3px;width:50%;margin:0px}
+							input[type=submit] {padding:5px 15px;cursor:pointer;}
+							#container { width: 265px; margin: 10px auto; background-color: #fff; color: #333; border: 1px solid gray; line-height: 130%; box-shadow: 0px 0px 10px rgba(0,0,0,0.3);}  
+							#content { padding: 1em;background-color:#f6f6f6 }  
+							#top { padding: .5em; background-color: #ddd; border-bottom: 1px solid gray; }  
+							#top h1 { padding: 0; margin: 0; }  
+							.label-error {color:red;}
+							#footer { clear: both; margin: 0; padding: .5em; color: #333; background-color:#ddd; border-top: 1px solid gray; }  
+						</style>
+					</head>
+					<body>
+						<div id='container'>
+							<div id='top'>
+								MMS Login
+							</div>
+							<div id='content'>
+								".$msg."
+								<form method='POST' enctype='multipart/form-data' action='?adm' id='admform'>
+									<input type='hidden' name='action' value='login'/>
+									<input type='password' name='pswd' style='width:155px;'>
+									<input type='submit' value='Login'>
+								</form>
+							</div>
+							<div id='footer'>
+								<a href='mailto:qczy@o2.pl'>Q3</a> MMS ".$GS['mms_ver'] ." 2013
+							</div>
+						</div>
+					</body>
+				</html>";
+		
+		}break;
 		
 		case "adm_tpl":{
 		
@@ -1081,13 +1336,14 @@ function inc($file){
 									$(this).addClass('active'); 
 									return false;	
 								});
-												
+									
+
 								$('#typ').change(function() {
 									
-									$('#tab2 div[id^=\"tab_\"]').hide(); //ukryj wszystko
+									$('.subtab').hide(); 
 									
 									tp = $(this).val();
-									//alert(tp);
+									
 									$('#tab_'+tp).show();
 								});
 								
@@ -1096,7 +1352,15 @@ function inc($file){
 									form.submit();
 								});
 								
-								
+								$('#plik_new').change(function() {
+									$('#new_item').submit();
+									return false;
+								});
+																
+								$('#add_file').click(function() {
+									$('#plik_new').click();
+									return false;
+								});
 							});
 
 							setTimeout(function(){ $('.label').fadeOut('slow');}, 2000);
@@ -1130,12 +1394,9 @@ function inc($file){
 							
 							#leftnav { float: left; margin: 0; padding: 2px;width:197px; } 
 							#content { margin-left: 200px; border-left: 1px solid gray; padding: 1em;background-color:#f6f6f6 }  
-							#footer { clear: both; margin: 0; padding: .5em; color: #333; background-color: 
-							#ddd; border-top: 1px solid gray; }  
-							
+							#footer { clear: both; margin: 0; padding: .5em; color: #333; background-color: #ddd; border-top: 1px solid gray; }  
 							.rmenu{float: right;padding: 8px;}
 
-							
 							#content h2 { margin: 0 0 .5em 0; }
 							#leftnav ul { margin: 0; padding: 0; } 
 							#leftnav ul li { list-style-type: none; display: block; } 
@@ -1169,14 +1430,13 @@ function inc($file){
 						</div>
 						<div id='leftnav'>
 						<ul class='sortable'>
-							<li><a class='home' href='?a=tablica'>Tablica</a>
+							<li><a class='home' href='dashboard.html'>Tablica</a>
 							{PS_MENU}
 						</ul>
 						</div>
 						<div id='content'>
 						<h2>{PV_TITLE}</h2>
 						{PV_CONTENT}
-						
 						</div>
 						<div id='footer'>
 						MMS ".$GS['mms_ver'] ." - Micro Management System by <a href='mailto:qczy@o2.pl'>Q3</a>
@@ -1204,15 +1464,16 @@ function inc($file){
 							#top h1 { padding: 0; margin: 0; }  
 							#leftnav { float: left; margin: 0; padding: 2px;width:197px; } 
 							#content { margin-left: 200px; border-left: 1px solid gray; padding: 1em; }  
-							#footer { clear: both; margin: 0; padding: .5em; color: #333; background-color: 
-							#ddd; border-top: 1px solid gray; }  
-							
+							#footer { clear: both; margin: 0; padding: .5em; color: #333; background-color: #ddd; border-top: 1px solid gray; }  
 							#content h2 { margin: 0 0 .5em 0; }
 							#leftnav ul { margin: 0; padding: 0; } 
 							#leftnav ul li { list-style-type: none; display: block; } 
 							#leftnav li a { display: block; padding: 5px 10px; text-decoration: none; border-right: 1px solid #fff; } 
 							#leftnav li a:hover { background: #ddd; } 
 							#leftnav li a.active { background: #EEEEEE; } 
+							ul.galery {list-style-type: none;}
+							ul.galery li img {float: left;margin: 10px;border: 5px solid #fff;-webkit-transition: box-shadow 0.5s ease;-moz-transition: box-shadow 0.5s ease;-o-transition: box-shadow 0.5s ease;-ms-transition: box-shadow 0.5s ease;transition: box-shadow 0.5s ease;}
+							ul.galery li img:hover {-webkit-box-shadow: 0px 0px 7px rgba(255,255,255,0.9);box-shadow: 0px 0px 7px rgba(255,255,255,0.9);}
 						</style>
 					</head>
 					<body>
@@ -1228,11 +1489,10 @@ function inc($file){
 						</div>
 						<div id='content'>
 						<h2>{PV_TITLE}</h2>
-						{PV_CONTENT}
-						
+							{PV_CONTENT}
 						</div>
 						<div id='footer'>
-						MMS - Micro Management System by <a href='mailto:qczy@o2.pl'>Q3</a>
+							MMS - Micro Management System by <a href='mailto:qczy@o2.pl'>Q3</a>
 						</div>
 						</div>
 						
