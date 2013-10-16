@@ -30,7 +30,7 @@ TODO:
 
 
 //ZMIENNE SYSTEMOWE -->
-	$GS['mms_ver'] = "1.1";
+	$GS['mms_ver'] = "1.3";
 	$GS['loc_path'] = dirname(__FILE__).$SL;;//okresla lokalna sciezka np.: D:\xammp\htdocs\mms/
 	$GS['srv_name'] = $_SERVER['SERVER_NAME'];//okresla nazwe serwera np.: localhost
 	$GS['dir_path'] = substr($_SERVER['SCRIPT_NAME'],0,-9);//okresla sciezke na serwerze np.: /mms/
@@ -300,26 +300,16 @@ $_GET["p"] = ($_GET["p"])?$_GET["p"]:"index";
 							$PV_TMP[$_PUVK] = stripslashes($_POST[$_PUVK]);
 						}		
 						
-						// TODO --> Sprawdzić, czy nie wystąpił taki sam lnk
-						
-						//Przepisanie tymczasowej tablicy
-						$pages[$_POST["id"]] = $PV_TMP;
+						$pg_lnk_exists = 0;
+						foreach ($pages as $pg){
+							if ($_POST["lnk"]==$pg["lnk"] && !$_POST["id"])$pg_lnk_exists = 1;
+						} 
+						//jeżeli strona o takim linku nie istnieje zapisz ją.
+						if(!$pg_lnk_exists) $pages[$_POST["id"]] = $PV_TMP; 
+
 						$_GET["p"] = $_POST["lnk"];
-						//zmieniamy wyświetlaną stronę
 						
-						//Zapisanie plików doczytanych do strony
-						if(isset($_FILES['plk'])){//jesli wysylanie pliku
-							$pl_tmp=$_FILES['plk']['tmp_name'];
-							$pl_name=createurl($_FILES['plk']['name']);
-							if(is_uploaded_file($pl_tmp)){
-								if(move_uploaded_file($pl_tmp,$GS['upl_dir'].$pl_name)){;
-									$msg = "<span class='label label-success'>Plik został załadowany</span>";
-								}else{
-									$msg = "<span class='label label-error'>Nie udało się zapisać pliku</span>";
-								}
-							}
-						}
-						
+
 					}break;
 				}
 
@@ -335,12 +325,15 @@ $_GET["p"] = ($_GET["p"])?$_GET["p"]:"index";
 				
 				}
 				//Zapis stron
-				if (save_pages($pages)){
-					$msg = "<span class='label label-success'>Dane zostały zapisane</span>";
+				if($pg_lnk_exists == 0){
+					if (save_pages($pages)){
+						$msg .= "<span class='label label-success'>Dane zostały zapisane</span>";
+					}else{
+						$msg .= "<span class='label label-error'>Dane nie zostały zapisane</span>";
+					};
 				}else{
-					$msg = "<span class='label label-error'>Dane nie zostały zapisane</span>";
-				};
-				
+					$msg = "<span class='label label-error'>Strona o podanym linku już istnieje</span>";
+				}
 			}
 		}break;
 		
@@ -367,7 +360,7 @@ foreach($pages as $pkey=>$page){
 	
 	$prev=(isset($_GET['prev']))?"?prev":"";
 
-	$icon =($page["status"]==0)?"<img style='position:relative;top:3px;height:14px;' src='".$GS['res_dir']."invisible_light_icon.png' alt='niewidoczna'/>":(($page["status"]==2)?"<img style='position:relative;top:3px;height:14px;border:0px;' src='".$GS['res_dir']."lock.png' alt='niewidoczna' />":"");
+	$icon =($page["status"]==0)?"<img style='position:relative;top:3px;height:14px;' src='".$GS['res_dir']."invisible_light_icon.png' alt='niewidoczna' border='0'/>":(($page["status"]==2)?"<img style='position:relative;top:3px;height:14px;border:0px;' src='".$GS['res_dir']."lock.png' alt='niewidoczna' />":"");
 	
 	$class = ($page["lnk"]==$_GET["p"])?"active":"";
 	$liclass = ($page["lnk"]==$_GET["p"])?"current":"";
@@ -483,8 +476,41 @@ foreach($pages as $pkey=>$page){
 
 			switch($_GET["a"]){
 			
-				case "ps":{
+				case "upd":{
+					$TPL_V["PV_TITLE"] = "Aktualizacja MMS";
+					
+					$ver_file = fopen ("http://qczy.pl/update/mms.ver", "r");
+					if (!$ver_file) {
+						$new_ver_html = "<p>Nie można otworzyć zdalnego pliku.\n";	
+					}else{
+						while (!feof ($ver_file)) {
+							$NW[] = fgets ($ver_file, 1024);	
+						}
+					}
+					fclose($ver_file);
+					
+					//Weź wersję
+					$new_ver = $NW[0];
+					
+					//Weź opis
+					for($i=1;$i<=100;$i++) $new_ver_desc .=$NW[i];
+					
+					if(trim($new_ver)==$GS['mms_ver']){
+					
+						$new_ver_html = "<span class='label label-error'>Twoja wersja jest aktualna</span>";
+					
+					}else{
+						$new_ver_html = " Dostępna wersja: 1.3 <a href='#'>Aktualizuj</a>" ;
+					
+					
+					}
+					
+					$TPL_V["PV_CONTENT"] = "Aktualna wersja: " . $GS['mms_ver'] . "<br/>" . $new_ver_html ;
+			
+				}break;
 				
+				case "ps":{
+				/*
 					$fields="<input type='hidden' name='action' value='ps'/>";
 					foreach($PSK as $_PSK=>$_PSKV){	
 					
@@ -532,6 +558,89 @@ foreach($pages as $pkey=>$page){
 					$TPL_V["PV_TITLE"] = "Ustawienia witryny";
 					$TPL_V["PV_CONTENT"] = $fields ;
 
+					
+					
+					
+					*/
+					
+					
+					
+					
+					
+					
+					
+					
+						$fields="<input type='hidden' name='action' value='ps'/>";
+					foreach($PSK as $_PSK=>$_PSKV){	
+					
+						$_PSKV = explode("|",$_PSKV);
+						
+						$fields .="<div class='field'><label style=''>";
+						
+						switch($_PSK){
+						
+							case "admpswd":{
+								$fields .= $_PSKV[0].":<br/><input type='text' name='".$_PSK."' value='' style=''/>";
+							}break;
+							case "tpl":{
+								//Utworzenie select szablonów
+								$templates = array_diff(scandir($GS['tpl_dir']), array('..', '.', 'default'));
+								$tpl_sel =  "<select name='tpl' id='tpl' >";
+								$tpl_sel .=  "<option value='default'>Domyślny</option>";
+								foreach($templates as $tpl_dir){
+									$sel =($tpl_dir == $PS[strtolower($_PSK)])?"selected='selected'":"";
+									$tpl_sel .=  "<option value='".$tpl_dir."' ".$sel.">".$tpl_dir."</option>";
+								}
+								
+								$tpl_sel .=  "</select>";
+								
+								$fields .= $_PSKV[0].":<br/>".$tpl_sel;
+
+							}break;
+							case "keywords":
+							case "description":
+							{
+								$fields .= $_PSKV[0].":<br/><textarea name='".$_PSK."' style=''/>".$PS[strtolower($_PSK)]."</textarea>";
+							
+							}break;
+							default:{
+								$fields .= $_PSKV[0].":<br/><input type='text' name='".$_PSK."' value='".$PS[strtolower($_PSK)]."' style=''/>";
+							}break;
+						}
+
+						$fields .="</label><span>".$_PSKV[1]."</span></div>";
+						
+						
+						$tabs =  "
+							<div id='tabContainer'>
+								<ul class='tabs'>
+									<li><a class='active' id='itab1' href='#'>Ustawienia witryny</a></li>
+									<li><a id='itab2' href='#'>Zasoby</a></li>
+								</ul>
+								<div class='tabDetails'>
+									<div id='tab1' class='tabContents'>
+										".$fields."
+										<div >
+											<input type='submit' value='Zapisz zmiany'>
+										</div>
+									</div>
+								
+									<div id='tab2' class='tabContents'>
+										<div class='field'><label style=''>Manager zasobów:</label><span>Zarządzaj obrazami znajdującymi się w galerii</span></div>	
+										<iframe height='550' style='width:100%' frameborder='0' src='res/tinymce/plugins/filemanager/dialog.php?type=1&lang=pl&fldr='>
+										</iframe>
+										<div style='clear:both;'></div>
+									</div>
+									
+									
+								</div>
+							</div>";
+						
+					}
+
+					$TPL_V["PV_TITLE"] = "Ustawienia witryny";
+					$TPL_V["PV_CONTENT"] = $tabs ;
+	
 				}break;
 				
 				case "pus":{//page user settings
@@ -575,7 +684,7 @@ foreach($pages as $pkey=>$page){
 				case "nowa":{
 
 					$disp_pg = array('lnk'=>generateRandomString(10), 'typ'=>'html', 'mnu'=>'nowa strona', 'tpl'=>'template', 'title'=>'Tytuł nowej strony. Kliknij tutaj i zmień', 'content'=>'Kliknij tutaj i wprowadź swoją zawartość', 'status'=>'0', );
-					$disp_pg["id"]=count($pages);
+					$disp_pg["id"]=count($pages)+1;
 					
 					$TPL_V["pv_title"] = "Tytuł nowej strony. Kliknij tutaj aby go zmienić";
 					
@@ -585,8 +694,8 @@ foreach($pages as $pkey=>$page){
 				
 				default:{
 				
+					//Lista szablonów dla strony
 					$ptpls = glob($GS['tpl_dir'] .$PS["tpl"]."/*.tpl", GLOB_BRACE);
-					
 					$ptpl_sel =  "<select name='tpl' id='tpl' >";
 					foreach($ptpls as $ptpl){
 						$ptpl = substr(basename($ptpl),0,-4);
@@ -595,6 +704,7 @@ foreach($pages as $pkey=>$page){
 					}
 					$ptpl_sel .=  "</select>";
 					
+					//Lista dostępnych typów stron
 					$ptypeslst = array("html"=>"Tekst","gal"=>"Galeria");
 					$ptype_sel =  "<select name='typ' id='typ' >";
 					foreach($ptypeslst as $pkey=>$ptype){
@@ -607,16 +717,17 @@ foreach($pages as $pkey=>$page){
 						
 						$_SESSION["upl_dir"] = "data/galery/";
 						
-						$galeries = glob("res/tinymce/plugins/filemanager/".$_SESSION["upl_dir"]."*",GLOB_ONLYDIR);
-						
-						$gal_sel =  "<select name='pgcontent' id='pgcontent' ><option value='' >Folder główny</option>";
-						foreach($galeries as $gkey=>$gal_dir){
-						
-							$glsel =(basename ($gal_dir) == $disp_pg["content"])?"selected='selected'":"";
-							$gal_sel .=  "<option value='".basename ($gal_dir)."' ".$glsel.">".basename ($gal_dir)."</option>";
+						if ($a==5 && file_exists("res/tinymce/plugins/filemanager/".$_SESSION["upl_dir"])){
+							$galeries = glob("res/tinymce/plugins/filemanager/".$_SESSION["upl_dir"]."*",GLOB_ONLYDIR);
+							
+							$gal_sel =  "<select name='pgcontent' id='pgcontent' ><option value='' >Folder główny</option>";
+							foreach($galeries as $gkey=>$gal_dir){
+							
+								$glsel =(basename ($gal_dir) == $disp_pg["content"])?"selected='selected'":"";
+								$gal_sel .=  "<option value='".basename ($gal_dir)."' ".$glsel.">".basename ($gal_dir)."</option>";
+							}
+							$gal_sel .=  "</select>";
 						}
-						$gal_sel .=  "</select>";
-						
 						
 						
 					}
@@ -632,17 +743,14 @@ foreach($pages as $pkey=>$page){
 								</ul>
 								<div class='tabDetails'>
 									<div id='tab1' class='tabContents'>
-									
-										<input type='hidden' name='action' value='pages'/>
-										<input type='hidden' name='id' value='".$disp_pg["id"]."'>
-										<input type='hidden' name='pos' id='pos' value='' />
 										
+										<input type='hidden' name='action' value='pages'/><input type='hidden' name='id' value='".$disp_pg["id"]."'><input type='hidden' name='pos' id='pos' value='' />
 										
-										<div class='field'><label>Typ:<br/>".$ptype_sel."</label><span>Typ strony określa zawartość w niej umieszczoną.</span></div>
-										<div class='field'><label style=''>Tytuł:<br/><input type='text' name='title' id='title' value='".$disp_pg["title"]."' /></label><span>Tytuł strony wyświetlany w oknie głównym nad treścią</span></div>
-										<div class='field'><label style=''>Menu:<br/><input type='text' name='mnu' id='mnu' value='".$disp_pg["mnu"]."' /></label><span>Tekst wyświetlany w głównym menu strony</span></div>
-										<div class='field'><label style=''>Link:<br/><input type='text' name='lnk' id='lnk' value='".$disp_pg["lnk"]."' /></label><span>Określa przyjazną nazwę wirtualnego pliku strony, np www.strona.pl/<b>".$disp_pg["lnk"]."</b>.html</span></div>
-										<div class='field'><label style=''>Szablon:<br/>".$ptpl_sel."</label><span>Unikalny szablon strony dostępny w ramach jednego szablonu witryny</span></div>	
+										<div class='field'><label style=''>Tytuł: <br/><input type='text' name='title' id='title' value='".$disp_pg["title"]."' /></label><span>Tytuł strony wyświetlany w oknie głównym nad treścią</span></div>
+										<div class='field'><label style=''>Menu: <br/><input type='text' name='mnu' id='mnu' value='".$disp_pg["mnu"]."' /></label><span>Tekst wyświetlany w głównym menu strony</span></div>
+										<div class='field'><label style=''>Link: <br/><input type='text' name='lnk' id='lnk' value='".$disp_pg["lnk"]."' /></label><span>Określa przyjazną nazwę wirtualnego pliku strony, np www.strona.pl/<b>".$disp_pg["lnk"]."</b>.html</span></div>
+										<div class='field'><label style=''>Typ: <br/>".$ptype_sel."</label><span>Typ strony określa zawartość w niej umieszczoną.</span></div>
+										<div class='field'><label style=''>Szablon: <br/>".$ptpl_sel."</label><span>Unikalny szablon strony dostępny w ramach jednego szablonu witryny</span></div>	
 										
 										<div class='field'><label style=''>Status:<br/>
 											<select name='status' id='status'>
@@ -683,9 +791,7 @@ foreach($pages as $pkey=>$page){
 											</iframe>
 										</div>
 										
-										<div style='padding:5px;'>
-											<input type='submit' value='Zapisz zmiany'>
-										</div>
+										<div style='padding:5px;'><input type='submit' value='Zapisz zmiany'></div>
 										
 										<div style='clear:both;'></div>
 									</div>
@@ -1104,7 +1210,7 @@ function gpl($link,$array){//Pobiera stronę po linku
 		}
 	}
 	return array('lnk'=>'404', 'typ'=>'html', 
-	'mnu'=>'404', 'title'=>'Brak strony do wyświetlenia', 
+	'mnu'=>'404', 'title'=>'<p style="font-size:40pt">404</p>Brak strony do wyświetlenia', 
 	'content'=>'Wybrana strona nie istnieje. Przepraszamy', 'status'=>'0', );
 }
 
@@ -1377,11 +1483,12 @@ function inc($file){
 							#tabContainer ul.tabs li a.active { background-color: #f6f6f6;color: #000; position: relative;top: 1px; }
 							#tabContainer ul.tabs a:hover { background: #fff; }
 							.tabDetails{padding:10px;border-style:solid;border-color:silver;border-width:0px 1px 1px 1px;}
-							label {display:block;font-weight:bold}
+							.field label {display:block;font-weight:bold;}
 							.field{padding:5px;}
-							.field span {font-size:8pt}
+							.field span {font-size:8pt;}
 							.label-success {color:green;}
-							input[type=text],input[type=password],select,textarea {padding:3px;width:50%;margin:0px}
+							.label-error {color:red;}
+							input[type=text],input[type=password],select,textarea {padding:3px;width:50%;margin:0px;border:1px solid silver;}
 							input[type=submit] {padding:5px 15px;cursor:pointer;}
 							#top { padding: .5em; background-color: #ddd; border-bottom: 1px solid gray; }  
 							#top h1 { padding: 0; margin: 0; }  
@@ -1429,8 +1536,10 @@ function inc($file){
 							{ADMIN_BAR}
 						</div>
 						<div id='leftnav'>
-						<ul class='sortable'>
+						<ul>
 							<li><a class='home' href='dashboard.html'>Tablica</a>
+						</ul>
+						<ul class='sortable'>
 							{PS_MENU}
 						</ul>
 						</div>
