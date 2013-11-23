@@ -1,4 +1,0 @@
-mms
-===
-
-Mikro Management System

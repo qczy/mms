@@ -36,6 +36,7 @@ mb_internal_encoding('UTF-8');
 //http://localhost/mms/res/tinymce/plugins/filemanager/dialog.php
 
 //print_r($_SERVER);
+if($_SESSION['admin']!='ok') die();
 
 $base_url='';  // base url (only domain) of site (without final /). If you prefer relative urls leave empty
 //$upload_dir = dirname( $_SERVER["PHP_SELF"]) . '/data/images/'; // path from base_url to base of upload folder (with start and final /)
